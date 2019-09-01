@@ -1,7 +1,7 @@
 import moment from "moment";
 import knex from "knexClient";
 
-export default async function getAvailabilities(date) {
+export default async function getAvailabilities(date, numberOfDays = 7) {
   const availabilities = new Map();
   for (let i = 0; i < 7; ++i) {
     const tmpDate = moment(date).add(i, "days");
@@ -11,11 +11,22 @@ export default async function getAvailabilities(date) {
     });
   }
 
+  const lookAhead = numberOfDays * 86400000;
+
   const events = await knex
     .select("kind", "starts_at", "ends_at", "weekly_recurring")
     .from("events")
     .where(function() {
-      this.where("weekly_recurring", true).orWhere("ends_at", ">", +date);
+      this.where("weekly_recurring", true).andWhere(
+        "starts_at",
+        "<=",
+        +date + lookAhead
+      );
+    })
+    .orWhere(function() {
+      this.where("kind", "appointment")
+        .andWhere("starts_at", "<=", +date + lookAhead)
+        .andWhere("starts_at", ">", +date);
     });
 
   for (const event of events) {
@@ -35,5 +46,5 @@ export default async function getAvailabilities(date) {
     }
   }
 
-  return Array.from(availabilities.values())
+  return Array.from(availabilities.values());
 }
