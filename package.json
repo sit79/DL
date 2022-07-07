@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "knex": "^0.19.5",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "sqlite3": "^4.1.0"
   },
   "devDependencies": {
